@@ -24,6 +24,7 @@ import com.epam.digital.data.platform.dgtldcmnt.client.DigitalDocumentServiceInt
 import com.epam.digital.data.platform.dgtldcmnt.dto.InternalApiDocumentMetadataDto;
 import com.epam.digital.data.platform.dgtldcmnt.multipart.ByteArrayMultipartFile;
 import com.epam.digital.data.platform.integration.idm.service.IdmService;
+import javax.servlet.ServletContext;
 import java.util.List;
 import org.apache.tika.Tika;
 import org.assertj.core.api.Assertions;
@@ -53,6 +54,8 @@ public class SaveDigitalDocumentJuelFunctionTest {
   @Mock
   Tika tika;
   @Mock
+  ServletContext servletContext;
+  @Mock
   IdmService idmService;
   @Mock
   ApplicationContext applicationContext;
@@ -71,6 +74,7 @@ public class SaveDigitalDocumentJuelFunctionTest {
         .when(applicationContext).getBean(DigitalDocumentServiceInternalApiV2RestClient.class);
     Mockito.lenient().doReturn(idmService)
         .when(applicationContext).getBean("system-user-keycloak-client-service", IdmService.class);
+    Mockito.lenient().doReturn(servletContext).when(applicationContext).getBean(ServletContext.class);
     Mockito.lenient().doReturn(tika).when(applicationContext).getBean(Tika.class);
     Mockito.lenient().doReturn(ROOT_PROCESS_INSTANCE_ID).when(executionEntity)
         .getRootProcessInstanceId();
@@ -88,7 +92,7 @@ public class SaveDigitalDocumentJuelFunctionTest {
         .hasFieldOrPropertyWithValue("checksum", null)
         .hasFieldOrPropertyWithValue("size", 0L);
 
-    Mockito.verifyNoInteractions(client, tika);
+    Mockito.verifyNoInteractions(client, servletContext, tika);
   }
 
   @Test
@@ -103,17 +107,17 @@ public class SaveDigitalDocumentJuelFunctionTest {
         .hasFieldOrPropertyWithValue("checksum", null)
         .hasFieldOrPropertyWithValue("size", 0L);
 
-    Mockito.verifyNoInteractions(client, tika);
+    Mockito.verifyNoInteractions(client, servletContext, tika);
   }
 
   @Test
   void shouldSendRequestToDigitalDocumentService() {
     var content = new byte[]{1, 2, 3};
     var targetFileName = "file.txt";
-    var contentType = "application/json";
+    var contentType = "text/plain";
 
     Mockito.doReturn("accessToken").when(idmService).getClientAccessToken();
-    Mockito.doReturn("application/json").when(tika).detect(content, targetFileName);
+    Mockito.doReturn("text/plain").when(servletContext).getMimeType(targetFileName);
 
     var expectedMultipartFile = ByteArrayMultipartFile.builder()
         .bytes(content)
@@ -141,7 +145,7 @@ public class SaveDigitalDocumentJuelFunctionTest {
         .hasFieldOrPropertyWithValue("checksum", "someCheckSum")
         .hasFieldOrPropertyWithValue("size", (long) content.length);
 
-    Mockito.verify(tika).detect(content, targetFileName);
+    Mockito.verify(servletContext).getMimeType(targetFileName);
     Mockito.verify(client)
         .upload(eq(ROOT_PROCESS_INSTANCE_ID), eq(targetFileName), refEq(expectedMultipartFile),
             httpHeadersArgumentCaptor.capture());

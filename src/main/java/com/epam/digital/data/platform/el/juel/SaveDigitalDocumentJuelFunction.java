@@ -23,6 +23,8 @@ import com.epam.digital.data.platform.dgtldcmnt.dto.InternalApiDocumentMetadataD
 import com.epam.digital.data.platform.dgtldcmnt.multipart.ByteArrayMultipartFile;
 import com.epam.digital.data.platform.el.juel.dto.DocumentMetadata;
 import com.epam.digital.data.platform.integration.idm.service.IdmService;
+
+import javax.servlet.ServletContext;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -71,11 +73,14 @@ public class SaveDigitalDocumentJuelFunction extends AbstractApplicationContextA
 
   private static MultipartFile toMultipartFile(byte[] content, String targetFileName) {
     var tika = getBean(Tika.class);
+    var servletContext = getBean(ServletContext.class);
+    var contentType = servletContext.getMimeType(targetFileName);
 
     return ByteArrayMultipartFile.builder()
         .originalFilename(targetFileName)
         .bytes(content)
-        .contentType(tika.detect(content, targetFileName))
+        .contentType(
+            Objects.nonNull(contentType) ? contentType : tika.detect(content, targetFileName))
         .build();
   }
 
