@@ -53,7 +53,7 @@
     <bpmn:scriptTask id="Activity_0ucvf8o" name="Save document for root process" scriptFormat="groovy">
       <bpmn:incoming>Flow_0zaclhd</bpmn:incoming>
       <bpmn:outgoing>Flow_1ssvigi</bpmn:outgoing>
-      <bpmn:script>var documentMetadata = save_digital_document(new byte[]{1, 2, 3},'file.txt')
+      <bpmn:script>var documentMetadata = save_digital_document(new byte[]{1, 2, 3},'file.txt', 0, 0, 100)
 
         assert documentMetadata.id.equals('11111111-1111-1111-1111-111111111111')
         assert documentMetadata.name.equals('file.txt')

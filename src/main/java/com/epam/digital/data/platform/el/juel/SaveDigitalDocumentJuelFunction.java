@@ -26,6 +26,7 @@ import com.epam.digital.data.platform.integration.idm.service.IdmService;
 
 import javax.servlet.ServletContext;
 import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,17 @@ public class SaveDigitalDocumentJuelFunction extends AbstractApplicationContextA
    * @return stored file metadata
    */
   public static DocumentMetadata save_digital_document(byte[] content, String targetFileName) {
+    return save_digital_document(content, targetFileName, 0, 0, 100);
+  }
+
+  /**
+   * Static JUEL function that sends request for storing the file with content passed as byte array with compression params
+   *
+   * @param content        content of the file to store
+   * @param targetFileName new file name for this file
+   * @return stored file metadata
+   */
+  public static DocumentMetadata save_digital_document(byte[] content, String targetFileName, int imageMaxWidth, int imageMaxHeight, int compressionQuality) {
     if (Objects.isNull(content) || Objects.isNull(targetFileName)) {
       log.warn("save_digital_document wasn't executed because one of the inputs is null");
       return DocumentMetadata.builder().build();
@@ -66,7 +78,7 @@ public class SaveDigitalDocumentJuelFunction extends AbstractApplicationContextA
     var idmService = getBean("system-user-keycloak-client-service", IdmService.class);
     var accessToken = idmService.getClientAccessToken();
     var headers = createHeaders(accessToken);
-    var metadataDto = restClient.upload(rootProcessInstanceId, targetFileName, multipartFile, headers);
+    var metadataDto = restClient.upload(rootProcessInstanceId, targetFileName, multipartFile, imageMaxWidth, imageMaxHeight, compressionQuality, headers);
 
     return toDocumentMetadata(metadataDto);
   }

@@ -24,8 +24,10 @@ import com.epam.digital.data.platform.dgtldcmnt.client.DigitalDocumentServiceInt
 import com.epam.digital.data.platform.dgtldcmnt.dto.InternalApiDocumentMetadataDto;
 import com.epam.digital.data.platform.dgtldcmnt.multipart.ByteArrayMultipartFile;
 import com.epam.digital.data.platform.integration.idm.service.IdmService;
+
 import javax.servlet.ServletContext;
 import java.util.List;
+
 import org.apache.tika.Tika;
 import org.assertj.core.api.Assertions;
 import org.camunda.bpm.engine.impl.context.Context;
@@ -133,7 +135,7 @@ public class SaveDigitalDocumentJuelFunctionTest {
         .build();
     Mockito.doReturn(metadataDto).when(client)
         .upload(eq(ROOT_PROCESS_INSTANCE_ID), eq(targetFileName), refEq(expectedMultipartFile),
-            any());
+            eq(0), eq(0), eq(100), any());
 
     final var actualDocumentDto = SaveDigitalDocumentJuelFunction.save_digital_document(content,
         targetFileName);
@@ -148,7 +150,7 @@ public class SaveDigitalDocumentJuelFunctionTest {
     Mockito.verify(servletContext).getMimeType(targetFileName);
     Mockito.verify(client)
         .upload(eq(ROOT_PROCESS_INSTANCE_ID), eq(targetFileName), refEq(expectedMultipartFile),
-            httpHeadersArgumentCaptor.capture());
+            eq(0), eq(0), eq(100), httpHeadersArgumentCaptor.capture());
     var actualHeaders = httpHeadersArgumentCaptor.getValue();
     Assertions.assertThat(actualHeaders)
         .containsEntry("X-Access-Token", List.of("accessToken"));
